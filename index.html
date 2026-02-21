@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SignalFlow</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{background:#080c10;color:#c8d8e8;font-family:'JetBrains Mono',monospace;min-height:100vh;}
+    :root{--green:#00ff88;--red:#ff4466;--blue:#4488ff;--amber:#ffbb33;--purple:#aa66ff;--dim:#2a3a4a;--mid:#4a6a7a;--bg1:#0d1520;--bg2:#111d2a;--bg3:#162030;--border:rgba(68,136,255,0.15);--glow:0 0 24px rgba(68,136,255,0.1);}
+    .app{max-width:1300px;margin:0 auto;padding:24px 20px;}
+    .header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:12px;}
+    .logo{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:#fff;}.logo span{color:var(--green);}
+    .subtitle{font-size:10px;color:var(--mid);letter-spacing:3px;text-transform:uppercase;margin-top:4px;}
+    .hright{display:flex;align-items:center;gap:12px;}
+    .srow{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--mid);}
+    .dot{width:7px;height:7px;border-radius:50%;background:var(--dim);flex-shrink:0;}
+    .dot.live{background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite;}
+    .dot.err{background:var(--red);}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.35}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .setup-box{border-radius:10px;padding:20px;margin-bottom:20px;border:1px solid rgba(68,136,255,0.25);background:rgba(68,136,255,0.06);}
+    .setup-box.done{border-color:rgba(0,255,136,0.3);background:rgba(0,255,136,0.04);}
+    .setup-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--blue);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;}
+    .setup-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+    .setup-input{flex:1;min-width:260px;background:var(--bg2);border:1px solid var(--dim);color:#c8d8e8;padding:9px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:12px;}
+    .setup-input:focus{outline:none;border-color:var(--blue);}
+    .sbtn{padding:9px 18px;background:rgba(68,136,255,0.2);border:1px solid rgba(68,136,255,0.4);border-radius:6px;color:var(--blue);font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
+    .sbtn:hover{background:rgba(68,136,255,0.35);}
+    .setup-note{font-size:10px;color:var(--mid);margin-top:8px;line-height:1.8;}
+    .setup-note a{color:var(--blue);text-decoration:none;}
+    .disclaimer{background:rgba(255,187,51,0.06);border:1px solid rgba(255,187,51,0.2);border-radius:8px;padding:12px 16px;font-size:11px;color:var(--amber);line-height:1.7;margin-bottom:16px;display:flex;gap:10px;}
+    .disclaimer strong{color:#fff;}
+    .dq-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+    .dq-chip{display:flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:10px;border:1px solid var(--dim);color:var(--mid);}
+    .dq-chip.ok{border-color:rgba(0,255,136,0.25);color:var(--green);background:rgba(0,255,136,0.05);}
+    .dq-chip.warn{border-color:rgba(255,187,51,0.25);color:var(--amber);background:rgba(255,187,51,0.05);}
+    .dq-chip.err{border-color:rgba(255,68,102,0.25);color:var(--red);background:rgba(255,68,102,0.05);}
+    .vrow{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;flex-wrap:wrap;}
+    .vrow label{font-size:10px;color:var(--mid);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;}
+    .vsel{background:var(--bg3);border:1px solid var(--dim);color:#c8d8e8;padding:4px 10px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;}
+    .vnote{font-size:10px;color:var(--mid);margin-left:auto;}
+    .stabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+    .stab{padding:5px 14px;border-radius:20px;font-size:11px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;border:1px solid var(--dim);color:var(--mid);background:transparent;}
+    .stab.poly{border-color:var(--blue);color:var(--blue);background:rgba(68,136,255,0.1);}
+    .stab.kalshi{border-color:var(--amber);color:var(--amber);background:rgba(255,187,51,0.1);}
+    .stab.manifold{border-color:var(--green);color:var(--green);background:rgba(0,255,136,0.08);}
+    .stab.meta{border-color:var(--purple);color:var(--purple);background:rgba(170,102,255,0.08);}
+    .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;}
+    @media(max-width:800px){.mgrid{grid-template-columns:1fr;}}
+    .panel{background:var(--bg1);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--glow);}
+    .ph{background:var(--bg2);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+    .pt{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;}
+    .pt.poly{color:var(--blue);}.pt.kalshi{color:var(--amber);}.pt.manifold{color:var(--green);}.pt.meta{color:var(--purple);}
+    .badge{font-size:9px;padding:2px 7px;border-radius:3px;}
+    .bb{background:rgba(68,136,255,0.1);color:var(--blue);border:1px solid rgba(68,136,255,0.2);}
+    .ba{background:rgba(255,187,51,0.1);color:var(--amber);border:1px solid rgba(255,187,51,0.2);}
+    .bg{background:rgba(0,255,136,0.08);color:var(--green);border:1px solid rgba(0,255,136,0.2);}
+    .bp{background:rgba(170,102,255,0.08);color:var(--purple);border:1px solid rgba(170,102,255,0.2);}
+    .blow{background:rgba(255,187,51,0.06);color:var(--amber);border:1px solid rgba(255,187,51,0.15);font-size:8px;}
+    .ml{max-height:320px;overflow-y:auto;}
+    .ml::-webkit-scrollbar{width:3px;}
+    .ml::-webkit-scrollbar-thumb{background:var(--dim);border-radius:2px;}
+    .mi{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;display:flex;gap:10px;align-items:flex-start;}
+    .mi:hover{background:var(--bg3);}
+    .mi.sel{background:rgba(68,136,255,0.07);border-left:2px solid var(--blue);}
+    .mn{font-size:11px;color:#ddeeff;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;}
+    .mm{font-size:10px;color:var(--mid);display:flex;gap:8px;}
+    .vh{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;}
+    .vh.hot{color:var(--green);}.vh.warm{color:var(--amber);}.vh.cold{color:var(--mid);}
+    .ow{text-align:right;min-width:52px;flex-shrink:0;}
+    .oy{font-size:16px;font-weight:700;line-height:1;}
+    .oy.hi{color:var(--green);}.oy.lo{color:#ff8844;}.oy.md{color:var(--amber);}
+    .oc{font-size:10px;margin-top:2px;}
+    .up{color:var(--green);}.dn{color:var(--red);}.fl{color:var(--mid);}
+    .nm{padding:30px;text-align:center;color:var(--mid);font-size:11px;line-height:2;}
+    .aw{margin-bottom:22px;}
+    .ah{text-align:center;font-size:10px;color:var(--mid);margin-bottom:10px;}
+    .abtn{width:100%;padding:14px;background:linear-gradient(135deg,rgba(68,136,255,0.18),rgba(0,255,136,0.09));border:1px solid rgba(68,136,255,0.35);border-radius:10px;color:#fff;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;letter-spacing:1.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;}
+    .abtn:hover:not(:disabled){background:linear-gradient(135deg,rgba(68,136,255,0.28),rgba(0,255,136,0.16));box-shadow:0 0 40px rgba(68,136,255,0.2);}
+    .abtn:disabled{opacity:0.4;cursor:not-allowed;}
+    .sp{width:14px;height:14px;border:2px solid rgba(255,255,255,0.15);border-top-color:var(--green);border-radius:50%;animation:spin 0.8s linear infinite;}
+    .sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+    .st{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--green);letter-spacing:1px;text-transform:uppercase;}
+    .es{padding:60px 20px;text-align:center;color:var(--mid);font-size:12px;line-height:2.2;border:1px solid var(--border);border-radius:10px;}
+    .ei{font-size:32px;margin-bottom:12px;opacity:0.4;}
+    .eb{padding:14px;font-size:11px;color:var(--red);background:rgba(255,68,102,0.06);border:1px solid rgba(255,68,102,0.15);border-radius:8px;margin-bottom:14px;}
+    .tc{background:var(--bg1);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px;animation:fadeUp 0.35s ease both;box-shadow:var(--glow);}
+    .tch{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.05);}
+    .td{width:54px;height:54px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:11px;flex-shrink:0;}
+    .td.buy{background:rgba(0,255,136,0.1);color:var(--green);border:1px solid rgba(0,255,136,0.22);}
+    .td.sell{background:rgba(255,68,102,0.1);color:var(--red);border:1px solid rgba(255,68,102,0.22);}
+    .da{font-size:18px;}
+    .tt{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;line-height:1;}
+    .tco{font-size:11px;color:var(--mid);margin-top:3px;}
+    .tbd{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap;}
+    .tcf{text-align:right;}
+    .cl2{font-size:9px;color:var(--mid);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;}
+    .cn{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;}
+    .cgh{color:var(--green);}.cgm{color:var(--amber);}.cgl{color:var(--mid);}
+    .cbb{height:3px;background:var(--dim);border-radius:2px;margin-top:5px;width:64px;}
+    .cbf{height:100%;border-radius:2px;}
+    .tp{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,0.05);border-top:1px solid rgba(255,255,255,0.05);}
+    @media(max-width:600px){.tp{grid-template-columns:repeat(2,1fr);}}
+    .pc{padding:10px 14px;background:var(--bg2);}
+    .pl{font-size:9px;color:var(--mid);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+    .pv{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff;}
+    .pv.tgt{color:var(--green);}.pv.stp{color:var(--red);}.pv.tf{font-size:12px;color:var(--amber);}
+    .tb2{padding:16px 20px;}
+    .tr{font-size:12px;color:#aabbc8;line-height:1.7;margin-bottom:12px;}
+    .aw2{display:flex;gap:8px;background:rgba(255,68,102,0.05);border:1px solid rgba(255,68,102,0.12);border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:10px;color:#cc8899;line-height:1.6;}
+    .ob{background:var(--bg2);border:1px solid rgba(170,102,255,0.2);border-radius:8px;padding:14px;margin-bottom:12px;}
+    .ot{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;color:var(--purple);text-transform:uppercase;margin-bottom:10px;}
+    .og{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .ol{font-size:9px;color:var(--mid);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;}
+    .ov{font-size:12px;color:#ddeeff;}
+    .ov.gain{color:var(--green);}.ov.loss{color:var(--red);}
+    .tgs{display:flex;flex-wrap:wrap;gap:6px;}
+    .tg{font-size:10px;padding:2px 8px;border-radius:3px;background:rgba(255,255,255,0.04);color:var(--mid);border:1px solid rgba(255,255,255,0.07);}
+    .tg.src{color:var(--blue);border-color:rgba(68,136,255,0.18);}
+    .rbtn{background:transparent;border:1px solid var(--dim);color:var(--mid);padding:5px 12px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:10px;cursor:pointer;}
+    .rbtn:hover{border-color:var(--blue);color:var(--blue);}
+    .ts{font-size:10px;color:var(--dim);}
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div><div class="logo">SIGNAL<span>FLOW</span></div><div class="subtitle">Prediction Markets to Trade Ideas</div></div>
+    <div class="hright">
+      <span class="ts" id="ts"></span>
+      <div class="srow"><div class="dot" id="sd"></div><span id="st2">Loading...</span></div>
+      <button class="rbtn" onclick="loadMarkets()">Refresh</button>
+    </div>
+  </div>
+
+  <div class="setup-box" id="setupBox">
+    <div class="setup-title">Enter your Anthropic API Key</div>
+    <div class="setup-row">
+      <input type="password" class="setup-input" id="keyIn" placeholder="sk-ant-api03-..." />
+      <button class="sbtn" onclick="saveKey()">Save and Start</button>
+    </div>
+    <div class="setup-note">
+      Get a free key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> then click API Keys then Create Key.<br/>
+      Your key is stored only in your browser and goes directly to Anthropic when you generate ideas.
+    </div>
+  </div>
+
+  <div class="disclaimer"><div style="font-size:16px;flex-shrink:0">!</div><div><strong>Not financial advice.</strong> Research only. Polymarket and Kalshi use real money (most reliable). Manifold is play money. Always verify before trading.</div></div>
+
+  <div class="dq-row">
+    <div class="dq-chip" id="dq-poly"><div class="dot"></div> Polymarket</div>
+    <div class="dq-chip" id="dq-kalshi"><div class="dot"></div> Kalshi</div>
+    <div class="dq-chip" id="dq-manifold"><div class="dot"></div> Manifold</div>
+    <div class="dq-chip" id="dq-meta"><div class="dot"></div> Metaculus</div>
+  </div>
+
+  <div class="vrow">
+    <label>Min Volume:</label>
+    <select class="vsel" id="vf" onchange="render()">
+      <option value="0">Show all</option>
+      <option value="100000" selected>$100k+ recommended</option>
+      <option value="500000">$500k+ high conviction</option>
+      <option value="1000000">$1M+ top markets only</option>
+    </select>
+    <span class="vnote" id="vn"></span>
+  </div>
+
+  <div class="stabs">
+    <button class="stab poly" id="tab-all" onclick="fSrc('all')">All <span id="ca">-</span></button>
+    <button class="stab" id="tab-poly" onclick="fSrc('poly')">Polymarket <span id="cp">-</span></button>
+    <button class="stab" id="tab-kalshi" onclick="fSrc('kalshi')">Kalshi <span id="ck">-</span></button>
+    <button class="stab" id="tab-manifold" onclick="fSrc('manifold')">Manifold <span id="cm2">-</span></button>
+    <button class="stab" id="tab-meta" onclick="fSrc('meta')">Metaculus <span id="cme">-</span></button>
+  </div>
+
+  <div class="mgrid" id="mg">
+    <div class="panel"><div class="nm">Loading markets...</div></div>
+    <div class="panel"><div class="nm">Loading markets...</div></div>
+  </div>
+
+  <div class="aw">
+    <div class="ah" id="ah">Enter your API key above to get started</div>
+    <button class="abtn" id="ab" onclick="analyze()" disabled>Generate Stock and Options Trade Ideas</button>
+  </div>
+
+  <div>
+    <div class="sh"><div class="st">AI Trade Ideas</div><span id="tc2"></span></div>
+    <div id="tcon"><div class="es"><div class="ei">-</div>Enter your API key then hit Generate.<br/>Claude reads live prediction market signals<br/>and turns them into stock and options trades.</div></div>
+  </div>
+</div>
+<script>
+// Try multiple CORS proxies in order until one works
+const PROXIES = [
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+  url => `https://thingproxy.freeboard.io/fetch/${url}`,
+  url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+];
+
+async function pfetch(url) {
+  for (const proxy of PROXIES) {
+    try {
+      const r = await fetch(proxy(url), { signal: AbortSignal.timeout(8000) });
+      if (r.ok) {
+        const text = await r.text();
+        // Make sure it looks like JSON
+        const trimmed = text.trim();
+        if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+          return JSON.parse(trimmed);
+        }
+      }
+    } catch(e) { /* try next proxy */ }
+  }
+  throw new Error('All proxies failed for: ' + url.split('?')[0]);
+}
+
+let mkt={poly:[],kalshi:[],manifold:[],meta:[]};
+let sel=new Set();
+let src='all';
+let key=localStorage.getItem('sfkey')||'';
+const SC={poly:{l:'Polymarket',c:'poly',b:'bb',r:'high'},kalshi:{l:'Kalshi',c:'kalshi',b:'ba',r:'high'},manifold:{l:'Manifold',c:'manifold',b:'bg',r:'med'},meta:{l:'Metaculus',c:'meta',b:'bp',r:'med'}};
+
+if(key){document.getElementById('keyIn').value=key;document.getElementById('setupBox').className='setup-box done';}
+loadMarkets();
+
+function saveKey(){
+  const k=document.getElementById('keyIn').value.trim();
+  if(!k.startsWith('sk-ant')){alert('Key should start with sk-ant-');return;}
+  key=k;localStorage.setItem('sfkey',k);
+  document.getElementById('setupBox').className='setup-box done';
+  document.getElementById('ab').disabled=false;
+  hint();alert('Key saved! Click Generate to get trade ideas.');
+}
+
+function vs(v,s){if(s==='meta')return v+' forecasters';return v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':'$'+v;}
+function hc(v,s){if(s==='meta')return v>=200?'hot':v>=80?'warm':'cold';return v>=1e6?'hot':v>=2e5?'warm':'cold';}
+function dq(id,state,label){const c=document.getElementById('dq-'+id);c.className='dq-chip '+state;const col=state==='ok'?'var(--green)':state==='err'?'var(--red)':state==='warn'?'var(--amber)':'var(--dim)';c.innerHTML=`<div class="dot" style="background:${col}"></div> ${label}`;}
+function ss(s){document.getElementById('sd').className='dot'+(s==='live'?' live':s==='err'?' err':'');document.getElementById('st2').textContent=s==='live'?'Live data':s==='err'?'Error':'Loading...';}
+
+async function loadMarkets(){
+  ss('loading');
+  ['poly','kalshi','manifold','meta'].forEach(s=>dq(s,'loading',SC[s].l));
+  
+  await Promise.allSettled([
+    pfetch('https://gamma-api.polymarket.com/markets?limit=50&active=true&order=volume&ascending=false')
+      .then(data=>{
+        const ms=Array.isArray(data)?data:(data.markets||[]);
+        mkt.poly=ms.map(m=>{
+          let yes=0;
+          try{const p=typeof m.outcomePrices==='string'?JSON.parse(m.outcomePrices):(m.outcomePrices||[]);yes=parseFloat(p[0])||0;}catch(_){yes=parseFloat(m.bestBid||0);}
+          const vol=parseFloat(m.volume||0),last=parseFloat(m.lastTradePrice||yes);
+          return{id:m.id||m.conditionId,s:'poly',name:m.question||'Unknown',yes,vol,v24:parseFloat(m.volume24hr||0),chg:((yes-last)*100).toFixed(1),cat:m.category||''};
+        }).filter(m=>m.vol>=50000&&m.yes>0.02&&m.yes<0.98).sort((a,b)=>b.v24-a.v24).slice(0,20);
+        dq('poly','ok',`Polymarket ${mkt.poly.length} markets`);
+      }).catch(e=>dq('poly','err',`Polymarket failed`)),
+
+    pfetch('https://api.elections.kalshi.com/trade-api/v2/markets?limit=50&status=open')
+      .then(data=>{
+        mkt.kalshi=(data.markets||[]).map(m=>{
+          const bid=m.yes_bid||0,ask=m.yes_ask||0,last=m.last_price||0;
+          let yes;
+          if(bid>0&&ask>0)yes=((bid+ask)/2)/100;else if(last>0)yes=last/100;else if(bid>0)yes=bid/100;else if(ask>0)yes=ask/100;else return null;
+          return{id:m.ticker,s:'kalshi',name:m.title||'Unknown',yes,vol:m.volume||0,v24:m.volume_24h||0,chg:(bid>0&&(m.previous_yes_bid||0)>0)?(bid-(m.previous_yes_bid||0)).toFixed(1):'0.0',cat:m.category||''};
+        }).filter(m=>m&&m.vol>=5000&&m.yes>0.02&&m.yes<0.98).sort((a,b)=>b.vol-a.vol).slice(0,20);
+        dq('kalshi','ok',`Kalshi ${mkt.kalshi.length} markets`);
+      }).catch(e=>dq('kalshi','err',`Kalshi failed`)),
+
+    pfetch('https://api.manifold.markets/v0/markets?limit=50&sort=liquidity&filter=open')
+      .then(data=>{
+        mkt.manifold=(Array.isArray(data)?data:[]).filter(m=>m.outcomeType==='BINARY'&&m.probability&&(m.volume||0)>=1000&&m.probability>0.03&&m.probability<0.97).sort((a,b)=>(b.volume||0)-(a.volume||0)).slice(0,15).map(m=>({id:m.id,s:'manifold',name:m.question,yes:m.probability,vol:m.volume||0,v24:0,chg:'0.0',cat:m.groupSlugs?.[0]||''}));
+        dq('manifold','ok',`Manifold ${mkt.manifold.length} markets`);
+      }).catch(e=>dq('manifold','warn',`Manifold failed`)),
+
+    pfetch('https://www.metaculus.com/api2/questions/?order_by=-number_of_forecasters&type=forecast&status=open&limit=30')
+      .then(data=>{
+        mkt.meta=(data.results||[]).filter(q=>q.community_prediction?.full?.q2!=null&&(q.number_of_forecasters||0)>=50).sort((a,b)=>(b.number_of_forecasters||0)-(a.number_of_forecasters||0)).slice(0,12).map(q=>({id:String(q.id),s:'meta',name:q.title,yes:q.community_prediction.full.q2,vol:q.number_of_forecasters||0,v24:0,chg:'0.0',cat:q.categories?.[0]?.name||''}));
+        dq('meta','ok',`Metaculus ${mkt.meta.length} markets`);
+      }).catch(e=>dq('meta','warn',`Metaculus failed`)),
+  ]);
+
+  const all=Object.values(mkt).flat();
+  document.getElementById('ts').textContent='Updated '+new Date().toLocaleTimeString();
+  document.getElementById('ca').textContent=all.length;
+  document.getElementById('cp').textContent=mkt.poly.length;
+  document.getElementById('ck').textContent=mkt.kalshi.length;
+  document.getElementById('cm2').textContent=mkt.manifold.length;
+  document.getElementById('cme').textContent=mkt.meta.length;
+  ss(all.length>0?'live':'err');
+  render();hint();
+  if(key)document.getElementById('ab').disabled=false;
+}
+
+function render(){
+  const mv=parseInt(document.getElementById('vf').value)||0;
+  const flat=Object.values(mkt).flat();
+  const vis=flat.filter(m=>{if(src!=='all'&&m.s!==src)return false;if(m.s==='meta')return true;return m.vol>=mv;});
+  const grp={};vis.forEach(m=>{if(!grp[m.s])grp[m.s]=[];grp[m.s].push(m);});
+  document.getElementById('vn').textContent=`Showing ${vis.length} of ${flat.length} markets`;
+  const g=document.getElementById('mg');
+  if(!Object.keys(grp).length){g.innerHTML='<div class="panel"><div class="nm">No markets match filter. Try lowering the minimum.</div></div>';return;}
+  g.innerHTML=Object.entries(grp).map(([k,ms])=>{
+    const sc=SC[k];const low=sc.r!=='high';
+    const items=ms.map(m=>{
+      const p=(m.yes*100).toFixed(0),chg=parseFloat(m.chg)||0,heat=hc(m.vol,k),oc=m.yes>=0.65?'hi':m.yes<=0.35?'lo':'md';
+      return `<div class="mi ${sel.has(m.id)?'sel':''}" onclick="tog('${m.id}')"><div style="flex:1;min-width:0"><div class="mn" title="${m.name}">${m.name}</div><div class="mm"><span class="vh ${heat}">${vs(m.vol,k)}</span>${m.cat?`<span>${m.cat}</span>`:''}</div></div><div class="ow"><div class="oy ${oc}">${p}%</div><div class="oc ${chg>0?'up':chg<0?'dn':'fl'}">${chg>0?'↑':chg<0?'↓':'-'}${Math.abs(chg).toFixed(1)}pp</div></div></div>`;
+    }).join('');
+    return `<div class="panel"><div class="ph"><div class="pt ${sc.c}">${sc.l}</div><div style="display:flex;gap:6px">${low?'<span class="badge blow">LOWER SIGNAL</span>':''}<span class="badge ${sc.b}">${ms.length}</span></div></div><div class="ml">${items}</div></div>`;
+  }).join('');
+}
+
+function tog(id){sel.has(id)?sel.delete(id):sel.add(id);render();hint();}
+function fSrc(s){src=s;document.querySelectorAll('.stab').forEach(t=>t.className='stab');const m={all:'poly',poly:'poly',kalshi:'kalshi',manifold:'manifold',meta:'meta'};document.getElementById('tab-'+s).className='stab '+(m[s]||'poly');render();}
+function hint(){const n=sel.size;document.getElementById('ah').textContent=!key?'Enter your API key above first':n>0?`${n} market${n!==1?'s':''} selected`:'No selection - Claude will analyze all visible markets';}
+
+async function analyze(){
+  if(!key){alert('Enter your API key first.');return;}
+  const mv=parseInt(document.getElementById('vf').value)||0;
+  const flat=Object.values(mkt).flat();
+  const pool=sel.size>0?flat.filter(m=>sel.has(m.id)):flat.filter(m=>m.s==='meta'||m.vol>=mv);
+  if(!pool.length){alert('No markets to analyze. Try lowering the volume filter.');return;}
+  const btn=document.getElementById('ab');
+  btn.disabled=true;btn.innerHTML='<div class="sp"></div> Analyzing...';
+  document.getElementById('tcon').innerHTML='<div class="es"><div class="ei">-</div>Claude is reading prediction market signals...<br/>Takes about 15 seconds.</div>';
+  const summary=pool.map(m=>`[${SC[m.s].l}|${SC[m.s].r}] "${m.name}" YES:${(m.yes*100).toFixed(0)}% Vol:${vs(m.vol,m.s)} Move:${m.chg}pp`).join('\n');
+  const prompt=`You are a senior options trader. Convert prediction market signals into US stock trade ideas.\n\nRELIABILITY: Polymarket/Kalshi=real money highest signal. Manifold=play money. Metaculus=expert forecasts.\n\nMARKETS by volume (higher=stronger signal):\n${summary}\n\nGenerate 6 trade ideas. Mix stock and options plays. Prioritize high-volume Polymarket/Kalshi markets.\n\nRespond ONLY with JSON array:\n[{"ticker":"NVDA","companyName":"NVIDIA Corp","direction":"BUY","tradeType":"STOCK","confidence":82,"priceTarget":950,"stopLoss":820,"currentApprox":875,"timeframe":"4-6 weeks","rationale":"2-3 sentences explaining the prediction market signal and how it connects to this stock.","accuracyWarning":null,"optionsPlay":null,"catalysts":["tag1"],"sourceMarkets":["market name"]},{"ticker":"SPY","companyName":"SPDR S&P 500","direction":"BUY","tradeType":"OPTIONS","confidence":68,"priceTarget":575,"stopLoss":530,"currentApprox":548,"timeframe":"6-8 weeks","rationale":"Rationale.","accuracyWarning":null,"optionsPlay":{"strategy":"Bull Call Spread","leg1":"Buy 555C Jun 20","leg2":"Sell 575C Jun 20","maxGain":"$1000/contract","maxLoss":"$500/contract","breakeven":"$560"},"catalysts":["Fed"],"sourceMarkets":["name"]}]\n\nRules: direction=BUY or SELL. If STOCK optionsPlay=null. If OPTIONS fill optionsPlay. accuracyWarning=string if low reliability else null. All prices integers.`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2500,messages:[{role:'user',content:prompt}]})});
+    if(!r.ok){const e=await r.json();throw new Error(e.error?.message||'API error '+r.status);}
+    const d=await r.json();const txt=d.content.map(b=>b.text||'').join('');
+    renderTrades(JSON.parse(txt.replace(/```json|```/g,'').trim()));
+  }catch(e){document.getElementById('tcon').innerHTML=`<div class="eb">Error: ${e.message}</div>`;}
+  finally{btn.disabled=false;btn.innerHTML='Generate Stock and Options Trade Ideas';}
+}
+
+function renderTrades(trades){
+  if(!trades?.length){document.getElementById('tcon').innerHTML='<div class="eb">No ideas returned. Try again.</div>';return;}
+  document.getElementById('tc2').innerHTML=`<span class="badge bg">${trades.length} ideas</span>`;
+  document.getElementById('tcon').innerHTML=trades.map((t,i)=>{
+    const dir=(t.direction||'BUY').toUpperCase(),conf=t.confidence||50,cc=conf>=70?'cgh':conf>=50?'cgm':'cgl',bc=conf>=70?'#00ff88':conf>=50?'#ffbb33':'#4a6a7a',isO=t.tradeType==='OPTIONS';
+    const upsid=t.priceTarget&&t.currentApprox&&t.stopLoss?(((t.priceTarget-t.currentApprox)/t.currentApprox)*100).toFixed(1)+'% / '+((t.priceTarget-t.currentApprox)/Math.max(t.currentApprox-t.stopLoss,1)).toFixed(1)+':1':'n/a';
+    const warn=t.accuracyWarning?`<div class="aw2"><span>!</span><span>${t.accuracyWarning}</span></div>`:'';
+    const opts=isO&&t.optionsPlay?`<div class="ob"><div class="ot">Options: ${t.optionsPlay.strategy}</div><div class="og"><div><div class="ol">Leg 1</div><div class="ov">${t.optionsPlay.leg1}</div></div>${t.optionsPlay.leg2?`<div><div class="ol">Leg 2</div><div class="ov">${t.optionsPlay.leg2}</div></div>`:''}<div><div class="ol">Max Gain</div><div class="ov gain">${t.optionsPlay.maxGain}</div></div><div><div class="ol">Max Loss</div><div class="ov loss">${t.optionsPlay.maxLoss}</div></div><div><div class="ol">Breakeven</div><div class="ov">${t.optionsPlay.breakeven}</div></div></div></div>`:'';
+    const tags=(t.catalysts||[]).map(c=>`<span class="tg">${c}</span>`).join('');
+    const srcs=(t.sourceMarkets||[]).map(s=>`<span class="tg src">${s.slice(0,45)}</span>`).join('');
+    return `<div class="tc" style="animation-delay:${i*0.07}s"><div class="tch"><div class="td ${dir==='BUY'?'buy':'sell'}"><div class="da">${dir==='BUY'?'↑':'↓'}</div><div>${dir}</div></div><div><div class="tt">${t.ticker}</div><div class="tco">${t.companyName}</div><div class="tbd"><span class="badge ${isO?'bp':'bb'}">${isO?'OPTIONS':'STOCK'}</span><span class="badge bg" style="font-size:9px">${t.timeframe}</span></div></div><div class="tcf"><div class="cl2">Confidence</div><div class="cn ${cc}">${conf}%</div><div class="cbb"><div class="cbf" style="width:${conf}%;background:${bc}"></div></div></div></div><div class="tp"><div class="pc"><div class="pl">Current</div><div class="pv">$${t.currentApprox}</div></div><div class="pc"><div class="pl">Target</div><div class="pv tgt">$${t.priceTarget}</div></div><div class="pc"><div class="pl">Stop Loss</div><div class="pv stp">$${t.stopLoss}</div></div><div class="pc"><div class="pl">Upside R:R</div><div class="pv tf">${upsid}</div></div></div><div class="tb2">${warn}<div class="tr">${t.rationale}</div>${opts}<div class="tgs">${tags}${srcs}</div></div></div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>
